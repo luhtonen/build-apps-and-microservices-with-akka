@@ -26,7 +26,7 @@ class MusicController : AbstractActor() {
         }
 
     companion object {
-        val props = Props.create(MusicController::class.java)
+        val props: Props = Props.create(MusicController::class.java)
     }
 }
 

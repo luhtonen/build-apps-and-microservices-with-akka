@@ -6,7 +6,6 @@ import org.elu.scala.akka.Worker.Work
 class Router extends Actor {
   var routees: List[ActorRef] = _
 
-
   override def preStart(): Unit = {
     routees = List.fill(5) {
       context.actorOf(Props[Worker])

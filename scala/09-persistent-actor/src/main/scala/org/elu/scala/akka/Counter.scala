@@ -47,6 +47,8 @@ class Counter extends PersistentActor with ActorLogging {
     case SnapshotOffer(_, snapshot: State) =>
       println(s"Counter receive snapshot with data: $snapshot on recovery mode")
       state = snapshot
+    case RecoveryCompleted =>
+      println("Recovery completed and now I'll switch to receiving mode")
   }
 
   override def receiveCommand: Receive = {
@@ -60,5 +62,5 @@ class Counter extends PersistentActor with ActorLogging {
   }
 
   // disable recovery
-  override def recovery: Recovery = Recovery.none
+  //override def recovery: Recovery = Recovery.none
 }

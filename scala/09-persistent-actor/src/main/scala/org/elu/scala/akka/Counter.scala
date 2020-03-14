@@ -1,7 +1,7 @@
 package org.elu.scala.akka
 
 import akka.actor.ActorLogging
-import akka.persistence.{PersistentActor, Recovery, RecoveryCompleted, SnapshotOffer}
+import akka.persistence.{PersistentActor, Recovery, RecoveryCompleted, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 
 trait MySerialisable
@@ -36,8 +36,10 @@ class Counter extends PersistentActor with ActorLogging {
   def updateState(evt: Evt): Unit = evt match {
     case Evt(Increment(count)) =>
       state = State(count = state.count + count)
+      takeSnapshot
     case Evt(Decrement(count)) =>
       state = State(count = state.count - count)
+      takeSnapshot
   }
 
   override def receiveRecover: Receive = {
@@ -59,6 +61,16 @@ class Counter extends PersistentActor with ActorLogging {
       }
     case "print" =>
       println(s"The current state of counter is $state")
+    case SaveSnapshotSuccess(metadata) =>
+      println("save snapshot succeed")
+    case SaveSnapshotFailure(metadata, reason) =>
+      println(s"save snapshot failed and failure is $reason")
+  }
+
+  def takeSnapshot = {
+    if (state.count % 5 == 0) {
+      saveSnapshot(state)
+    }
   }
 
   // disable recovery

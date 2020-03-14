@@ -3,6 +3,9 @@ package org.elu.kotlin.akka
 import akka.japi.pf.ReceiveBuilder
 import akka.persistence.AbstractPersistentActor
 import akka.persistence.Recovery
+import akka.persistence.RecoveryCompleted
+import akka.persistence.SaveSnapshotFailure
+import akka.persistence.SaveSnapshotSuccess
 import akka.persistence.SnapshotOffer
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -32,6 +35,7 @@ class Counter : AbstractPersistentActor() {
       is Increment -> State(count = state.count + evt.op.count)
       is Decrement -> State(count = state.count - evt.op.count)
     }
+    takeSnapshot()
   }
 
   override fun createReceiveRecover(): Receive =
@@ -45,6 +49,7 @@ class Counter : AbstractPersistentActor() {
             println("Counter receive snapshot with data: $snapshot on recovery mode")
             state = snapshot as State
           }
+          .match(RecoveryCompleted::class.java) { println("Recovery completed and now I'll switch to receiving mode") }
           .build()
 
   override fun createReceive(): Receive =
@@ -54,7 +59,15 @@ class Counter : AbstractPersistentActor() {
             persist(Evt(cmd.op)) { updateState(it) }
           }
           .matchEquals("print") { println("The current state of counter is $state") }
+          .match(SaveSnapshotSuccess::class.java) { println("save snapshot succeed") }
+          .match(SaveSnapshotFailure::class.java) { failure: SaveSnapshotFailure -> println("save snapshot failed and failure is ${failure.cause()}") }
           .build()
 
-  override fun recovery(): Recovery = Recovery.none()
+  private fun takeSnapshot() {
+    if (state.count % 5 == 0) {
+      saveSnapshot(state)
+    }
+  }
+
+  // override fun recovery(): Recovery = Recovery.none()
 }

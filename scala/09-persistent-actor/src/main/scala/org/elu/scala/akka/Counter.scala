@@ -1,7 +1,7 @@
 package org.elu.scala.akka
 
 import akka.actor.ActorLogging
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.{PersistentActor, Recovery, RecoveryCompleted, SnapshotOffer}
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 
 trait MySerialisable
@@ -58,4 +58,7 @@ class Counter extends PersistentActor with ActorLogging {
     case "print" =>
       println(s"The current state of counter is $state")
   }
+
+  // disable recovery
+  override def recovery: Recovery = Recovery.none
 }

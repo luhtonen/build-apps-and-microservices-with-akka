@@ -2,6 +2,7 @@ package org.elu.kotlin.akka
 
 import akka.japi.pf.ReceiveBuilder
 import akka.persistence.AbstractPersistentActor
+import akka.persistence.Recovery
 import akka.persistence.SnapshotOffer
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -54,4 +55,6 @@ class Counter : AbstractPersistentActor() {
           }
           .matchEquals("print") { println("The current state of counter is $state") }
           .build()
+
+  override fun recovery(): Recovery = Recovery.none()
 }
